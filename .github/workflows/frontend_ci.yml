@@ -1,20 +1,17 @@
-name: Frontend CI Pipeline (Feature to Develop/Main PR)
+name: Frontend CI Pipeline (Feature to Develop PR)
 
 on:
   push:
-    branches: [ "develop" ]
+    branches:
+      - develop
   pull_request:
-    branches: [ "develop" ]
+    branches:
+      - develop
     types: [opened, synchronize, reopened]
 
 jobs:
   ci:
     runs-on: ubuntu-latest
-    # This tells GitHub to run all commands inside your frontend folder
-    defaults:
-      run:
-        working-directory: ./url-shortener-ui/front-end
-        
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -36,10 +33,6 @@ jobs:
   deploy_preview:
     runs-on: ubuntu-latest
     needs: ci
-    defaults:
-      run:
-        working-directory: ./url-shortener-ui/front-end
-        
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
