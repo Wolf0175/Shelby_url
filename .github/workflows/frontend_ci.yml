@@ -2,9 +2,9 @@ name: Frontend CI Pipeline (Feature to Develop/Main PR)
 
 on:
   push:
-    branches: [ "develop", "main" ]
+    branches: [ "develop" ]
   pull_request:
-    branches: [ "develop", "main" ]
+    branches: [ "develop" ]
     types: [opened, synchronize, reopened]
 
 jobs:
