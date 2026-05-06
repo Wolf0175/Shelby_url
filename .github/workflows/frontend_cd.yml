@@ -1,18 +1,19 @@
-name: Frontend CD Pipeline (Merge to Main)
+name: Frontend CD Pipeline (Develop to Main Merge)
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
-    types: [ closed ]
+    branches:
+      - main
+    types: 
+      - closed
+    
 
 jobs:
   build_and_push_docker:
     runs-on: ubuntu-latest
-    # Safety check: Only run if the code was pushed directly, or if the PR was successfully merged
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
-    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -29,9 +30,7 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
-          # Changed context to point to your specific frontend folder
-          context: ./url-shortener-ui/front-end
-          file: ./url-shortener-ui/front-end/Dockerfile
+          context: .
           push: true
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/vue-frontend:${{ github.sha }}
