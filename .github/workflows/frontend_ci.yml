@@ -1,0 +1,34 @@
+name: Frontend CI (Build Test)
+
+# The Trigger: Runs on Pull Requests to main
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    
+    # Tells GitHub to run all npm commands inside your frontend folder
+    defaults:
+      run:
+        working-directory: ./url-shortener-ui/front-end
+
+    steps:
+    # 1. Grab your code from GitHub
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # 2. Set up the Node.js environment
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16' 
+
+    # 3. Install your Vue dependencies
+    - name: Install dependencies
+      run: npm install
+
+    # 4. Try to build the project to catch any compilation errors
+    - name: Test Build
+      run: npm run build

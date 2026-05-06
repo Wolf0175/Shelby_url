@@ -1,0 +1,40 @@
+name: Frontend CD (Build & Artifact)
+
+# The Trigger: Runs when code is pushed directly to main
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: ./url-shortener-ui/front-end
+
+    steps:
+    # 1. Grab your code from GitHub
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # 2. Set up the Node.js environment
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+
+    # 3. Install dependencies
+    - name: Install dependencies
+      run: npm install
+
+    # 4. Build the final production application
+    - name: Build Production App
+      run: npm run build
+
+    # 5. Save the compiled files as an artifact
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: vue-production-build
+        path: ./url-shortener-ui/front-end/dist
