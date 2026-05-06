@@ -1,34 +1,63 @@
-name: Frontend CI (Build Test)
+name: Frontend CI Pipeline (Feature to Develop/Main PR)
 
-# The Trigger: Runs on Pull Requests to main
 on:
+  push:
+    branches: [ "develop", "main" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "develop", "main" ]
+    types: [opened, synchronize, reopened]
 
 jobs:
-  build-test:
+  ci:
     runs-on: ubuntu-latest
-    
-    # Tells GitHub to run all npm commands inside your frontend folder
+    # This tells GitHub to run all commands inside your frontend folder
     defaults:
       run:
         working-directory: ./url-shortener-ui/front-end
-
+        
     steps:
-    # 1. Grab your code from GitHub
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    # 2. Set up the Node.js environment
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '16' 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-    # 3. Install your Vue dependencies
-    - name: Install dependencies
-      run: npm install
+      - name: Install dependencies
+        run: npm install
 
-    # 4. Try to build the project to catch any compilation errors
-    - name: Test Build
-      run: npm run build
+      - name: Run unit tests
+        run: npm run test:unit --if-present
+
+      - name: Build Vue app
+        run: npm run build
+
+  deploy_preview:
+    runs-on: ubuntu-latest
+    needs: ci
+    defaults:
+      run:
+        working-directory: ./url-shortener-ui/front-end
+        
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Build project
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy preview
+        run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

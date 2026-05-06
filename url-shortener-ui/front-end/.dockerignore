@@ -1,0 +1,13 @@
+# Ignore massive dependency folders
+node_modules/
+
+# Ignore the build output folder (we build it fresh inside Docker)
+dist/
+
+# Ignore Git files
+.git/
+.github/
+
+# Ignore local environment variables
+.env.local
+.env.*.local
