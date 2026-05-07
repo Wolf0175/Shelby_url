@@ -1,72 +1,11 @@
-<script setup>
-import { ref } from 'vue'
-
-const longUrl = ref('')
-const shortUrl = ref('')
-const errorMessage = ref('')
-const isLoading = ref(false)
-
-const shortenUrl = async () => {
-  errorMessage.value = ''
-  shortUrl.value = ''
-  isLoading.value = true
-
-  try {
-    // Calling your specific C# backend port
-    const response = await fetch('https://localhost:7010/api/url/shorten', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ url: longUrl.value })
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      throw new Error(data.title || 'Failed to shorten URL. Make sure it is a valid link.')
-    }
-
-    shortUrl.value = data.shortUrl
-  } catch (error) {
-    errorMessage.value = error.message
-  } finally {
-    isLoading.value = false
-  }
-}
-</script>
-
 <template>
   <main class="container">
-    <div class="card">
-      <h1>URL Shortener</h1>
-      <p>Paste your long link below to make it short and sweet.</p>
-
-      <form @submit.prevent="shortenUrl">
-        <input 
-          v-model="longUrl" 
-          type="url" 
-          placeholder="https://example.com/very/long/path" 
-          required 
-        />
-        <button type="submit" :disabled="isLoading">
-          {{ isLoading ? 'Shortening...' : 'Shorten URL' }}
-        </button>
-      </form>
-
-      <div v-if="errorMessage" class="error">
-        {{ errorMessage }}
-      </div>
-
-      <div v-if="shortUrl" class="success">
-        <p>Your shortened URL is ready!</p>
-        <a :href="shortUrl" target="_blank">{{ shortUrl }}</a>
-      </div>
-    </div>
+    <router-view />
   </main>
 </template>
 
 <style>
+/* We keep the global styles here so both pages look good */
 body {
   background-color: #f4f4f9;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -142,7 +81,3 @@ button:disabled { background-color: #ccc; cursor: not-allowed; }
   text-decoration: none;
 }
 </style>
-
-
-
-
