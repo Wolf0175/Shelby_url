@@ -1,0 +1,58 @@
+// src/services/api.js
+
+const BASE_URL = 'https://shelby-url-backend2.onrender.com/api';
+
+// Service cho URL
+export const urlService = {
+  async shortenUrl(longUrl) {
+    const token = localStorage.getItem('jwt_token');
+    const headers = { 'Content-Type': 'application/json' };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${BASE_URL}/url/shorten`, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({ url: longUrl })
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.title || data.message || 'Failed to shorten URL.');
+    return data;
+  }
+};
+
+// Service cho User (Mới bổ sung)
+export const userService = {
+  async authenticate(endpoint, credentials) {
+    try {
+      const response = await fetch(`${BASE_URL}/user/${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials)
+      });
+
+      // Xử lý cả JSON và text thô từ backend [cite: 1]
+      let data;
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.indexOf("application/json") !== -1) {
+        data = await response.json();
+      } else {
+        data = { message: await response.text() };
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Authentication failed.');
+      }
+
+      return data;
+    } catch (error) {
+      if (error.message.includes('Failed to fetch')) {
+        throw new Error('Server is starting up (Cold Start). Please wait 30s and try again.');
+      }
+      throw error;
+    }
+  }
+};

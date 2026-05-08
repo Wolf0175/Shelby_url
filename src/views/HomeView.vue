@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { urlService } from '../services/api' // Import file service vừa tạo
 
 const longUrl = ref('')
 const shortUrl = ref('')
@@ -7,7 +8,6 @@ const errorMessage = ref('')
 const isLoading = ref(false)
 const isLoggedIn = ref(false)
 
-// Check if user is logged in when the page loads
 onMounted(() => {
   const token = localStorage.getItem('jwt_token')
   if (token) {
@@ -15,7 +15,6 @@ onMounted(() => {
   }
 })
 
-// Logout function
 const logout = () => {
   localStorage.removeItem('jwt_token')
   localStorage.removeItem('username')
@@ -24,32 +23,19 @@ const logout = () => {
   longUrl.value = ''
 }
 
-const shortenUrl = async () => {
+const handleShorten = async () => {
   errorMessage.value = ''
   shortUrl.value = ''
   isLoading.value = true
 
   try {
-    const token = localStorage.getItem('jwt_token')
-    const headers = { 'Content-Type': 'application/json' }
+    // Gọi trực tiếp hàm từ service, truyền vào URL
+    const data = await urlService.shortenUrl(longUrl.value)
     
-    // Attach token if user is logged in
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`
-    }
-
-    // --- UPDATED RENDER URL BELOW ---
-    const response = await fetch('https://shelby-url-backend2.onrender.com/api/url/shorten', {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify({ url: longUrl.value })
-    })
-
-    const data = await response.json()
-    if (!response.ok) throw new Error(data.title || 'Failed to shorten URL.')
-
+    // Lấy kết quả
     shortUrl.value = data.shortUrl
   } catch (error) {
+    // Bắt lỗi và hiển thị lên màn hình
     errorMessage.value = error.message
   } finally {
     isLoading.value = false
@@ -66,7 +52,7 @@ const shortenUrl = async () => {
     
     <p>Paste your long link below to make it short and sweet.</p>
 
-    <form @submit.prevent="shortenUrl">
+    <form @submit.prevent="handleShorten">
       <input v-model="longUrl" type="url" placeholder="https://example.com/very/long/path" required />
       <button type="submit" :disabled="isLoading">
         {{ isLoading ? 'Shortening...' : 'Shorten URL' }}
@@ -88,13 +74,8 @@ const shortenUrl = async () => {
 </template>
 
 <style scoped>
-/* Scoped styles remain exactly the same */
-.header-action {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
+/* CSS giữ nguyên không thay đổi */
+.header-action { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 .header-action h1 { margin-bottom: 0; margin-top: 0; }
 .logout-btn { background-color: #dc3545; width: auto; padding: 8px 15px; font-size: 14px; }
 .logout-btn:hover:not(:disabled) { background-color: #c82333; }
