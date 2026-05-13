@@ -7,15 +7,12 @@ const shortUrl = ref('')
 const errorMessage = ref('')
 const isLoading = ref(false)
 const isLoggedIn = ref(false)
-
-// --- NEW: Create a variable to hold the username ---
 const currentUsername = ref('') 
 
 onMounted(() => {
   const token = localStorage.getItem('jwt_token')
   if (token) {
     isLoggedIn.value = true
-    // --- NEW: Retrieve the username from local storage ---
     currentUsername.value = localStorage.getItem('username') 
   }
 })
@@ -24,7 +21,6 @@ const logout = () => {
   localStorage.removeItem('jwt_token')
   localStorage.removeItem('username')
   isLoggedIn.value = false
-  // --- NEW: Clear the username when logging out ---
   currentUsername.value = '' 
   shortUrl.value = ''
   longUrl.value = ''
@@ -53,6 +49,7 @@ const handleShorten = async () => {
       
       <div v-if="isLoggedIn" class="user-menu">
         <span class="welcome-text">Hi, <strong>{{ currentUsername }}</strong>!</span>
+        <router-link to="/dashboard" class="dashboard-btn">Dashboard</router-link>
         <button @click="logout" class="logout-btn">Logout</button>
       </div>
       
@@ -93,17 +90,26 @@ const handleShorten = async () => {
   margin-top: 0; 
 }
 
-/* --- NEW: CSS to make the username look nice --- */
 .user-menu {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
 }
 .welcome-text {
   font-size: 15px;
   color: #555;
 }
-/* ---------------------------------------------- */
+
+.dashboard-btn {
+  background-color: #28a745;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+.dashboard-btn:hover { background-color: #218838; }
 
 .logout-btn { background-color: #dc3545; width: auto; padding: 6px 12px; font-size: 14px; }
 .logout-btn:hover:not(:disabled) { background-color: #c82333; }

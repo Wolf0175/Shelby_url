@@ -1,8 +1,7 @@
 // src/services/api.js
-
 const BASE_URL = 'https://shelby-url-backend2.onrender.com/api';
 
-// Service cho URL
+// --- URL Service ---
 export const urlService = {
   async shortenUrl(longUrl) {
     const token = localStorage.getItem('jwt_token');
@@ -21,10 +20,27 @@ export const urlService = {
     const data = await response.json();
     if (!response.ok) throw new Error(data.title || data.message || 'Failed to shorten URL.');
     return data;
+  },
+
+  async getMyLinks() {
+    const token = localStorage.getItem('jwt_token');
+    if (!token) throw new Error('You must be logged in to view your links.');
+
+    const response = await fetch(`${BASE_URL}/url/my-links`, {
+      method: 'GET',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` 
+      }
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || 'Failed to fetch links.');
+    return data;
   }
 };
 
-// Service cho User (Mới bổ sung)
+// --- User Service ---
 export const userService = {
   async authenticate(endpoint, credentials) {
     try {
@@ -34,7 +50,6 @@ export const userService = {
         body: JSON.stringify(credentials)
       });
 
-      // Xử lý cả JSON và text thô từ backend [cite: 1]
       let data;
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.indexOf("application/json") !== -1) {
@@ -44,7 +59,12 @@ export const userService = {
       }
 
       if (!response.ok) {
-        throw new Error(data.message || 'Authentication failed.');
+        // Handle ASP.NET Core Validation Errors beautifully
+        if (data.errors) {
+          const firstErrorKey = Object.keys(data.errors)[0];
+          throw new Error(data.errors[firstErrorKey][0]);
+        }
+        throw new Error(data.message || 'Authentication failed. Please check your credentials.');
       }
 
       return data;
