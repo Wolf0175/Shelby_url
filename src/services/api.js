@@ -34,7 +34,25 @@ export const urlService = {
       }
     });
 
-    const data = await response.json();
+    // --- THE FIX: Safely handle empty or missing API responses ---
+    let data;
+    const contentType = response.headers.get("content-type");
+    
+    // Check if the server actually sent JSON data back
+    if (contentType && contentType.includes("application/json")) {
+      data = await response.json();
+    } else {
+      // If it's not JSON, it's likely an empty 404 or 500 error page
+      const text = await response.text();
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error("API not found (404). Render is probably still deploying your new C# code. Please wait a few minutes!");
+        }
+        throw new Error(`Server Error (${response.status}): ${text || 'Empty response'}`);
+      }
+      return text;
+    }
+
     if (!response.ok) throw new Error(data.message || 'Failed to fetch links.');
     return data;
   }
