@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { urlService } from '../services/api' // Import file service vừa tạo
+import { urlService } from '../services/api' 
 
 const longUrl = ref('')
 const shortUrl = ref('')
@@ -8,10 +8,15 @@ const errorMessage = ref('')
 const isLoading = ref(false)
 const isLoggedIn = ref(false)
 
+// --- NEW: Create a variable to hold the username ---
+const currentUsername = ref('') 
+
 onMounted(() => {
   const token = localStorage.getItem('jwt_token')
   if (token) {
     isLoggedIn.value = true
+    // --- NEW: Retrieve the username from local storage ---
+    currentUsername.value = localStorage.getItem('username') 
   }
 })
 
@@ -19,6 +24,8 @@ const logout = () => {
   localStorage.removeItem('jwt_token')
   localStorage.removeItem('username')
   isLoggedIn.value = false
+  // --- NEW: Clear the username when logging out ---
+  currentUsername.value = '' 
   shortUrl.value = ''
   longUrl.value = ''
 }
@@ -29,13 +36,9 @@ const handleShorten = async () => {
   isLoading.value = true
 
   try {
-    // Gọi trực tiếp hàm từ service, truyền vào URL
     const data = await urlService.shortenUrl(longUrl.value)
-    
-    // Lấy kết quả
     shortUrl.value = data.shortUrl
   } catch (error) {
-    // Bắt lỗi và hiển thị lên màn hình
     errorMessage.value = error.message
   } finally {
     isLoading.value = false
@@ -47,7 +50,12 @@ const handleShorten = async () => {
   <div class="card">
     <div class="header-action">
       <h1>URL Shortener</h1>
-      <button v-if="isLoggedIn" @click="logout" class="logout-btn">Logout</button>
+      
+      <div v-if="isLoggedIn" class="user-menu">
+        <span class="welcome-text">Hi, <strong>{{ currentUsername }}</strong>!</span>
+        <button @click="logout" class="logout-btn">Logout</button>
+      </div>
+      
     </div>
     
     <p>Paste your long link below to make it short and sweet.</p>
@@ -74,10 +82,30 @@ const handleShorten = async () => {
 </template>
 
 <style scoped>
-/* CSS giữ nguyên không thay đổi */
-.header-action { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.header-action h1 { margin-bottom: 0; margin-top: 0; }
-.logout-btn { background-color: #dc3545; width: auto; padding: 8px 15px; font-size: 14px; }
+.header-action { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  margin-bottom: 10px; 
+}
+.header-action h1 { 
+  margin-bottom: 0; 
+  margin-top: 0; 
+}
+
+/* --- NEW: CSS to make the username look nice --- */
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.welcome-text {
+  font-size: 15px;
+  color: #555;
+}
+/* ---------------------------------------------- */
+
+.logout-btn { background-color: #dc3545; width: auto; padding: 6px 12px; font-size: 14px; }
 .logout-btn:hover:not(:disabled) { background-color: #c82333; }
 .login-prompt { margin-top: 25px; font-size: 14px; color: #666; border-top: 1px solid #eee; padding-top: 15px; }
 .login-link { color: #007bff; text-decoration: none; font-weight: bold; }
